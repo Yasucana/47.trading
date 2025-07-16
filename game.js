@@ -1,149 +1,58 @@
-let playerDeck = [], aiDeck = [], selected = null, aiLevel = 1;
-
-function startGame() {
-  document.getElementById("game").style.display = "flex";
-  aiLevel = parseInt(document.getElementById("difficulty").value);
-  playerDeck = generateDeck();
-  aiDeck = generateDeck();
-  selected = null;
-  log("Game Started!");
-  render();
+function createCard() {
+  return {
+    hp: 10 + Math.floor(Math.random() * 6),
+    atk: 3 + Math.floor(Math.random() * 4),
+    alive: true
+  };
 }
 
-function generateDeck() {
-  const types = ["attack", "defense", "magic", "trap"];
-  return Array.from({ length: 5 }, () => {
-    const maxHp = 10 + Math.floor(Math.random() * 6);
-    return {
-      maxHp,
-      currentHp: maxHp,
-      atk: 3 + Math.floor(Math.random() * 4),
-      type: types[Math.floor(Math.random() * types.length)],
-      alive: true
-    };
-  });
-}
+let deck1 = Array.from({length: 5}, createCard);
+let deck2 = Array.from({length: 5}, createCard);
+let currentPlayer = 1;
 
 function render() {
-  const playerDiv = document.getElementById("player");
-  const aiDiv = document.getElementById("ai");
-  const selectedDiv = document.getElementById("selectedCard");
-
-  playerDiv.innerHTML = "";
-  aiDiv.innerHTML = "";
-  selectedDiv.innerHTML = "";
-
-  playerDeck.forEach((card, i) => {
-    const div = createCardDiv(card, i, true);
-    if (i === selected) div.classList.add("selected");
-    playerDiv.appendChild(div);
-  });
-
-  aiDeck.forEach((card, i) => {
-    const div = createCardDiv(card, i, false);
-    aiDiv.appendChild(div);
-  });
-
-  if (selected !== null && playerDeck[selected]) {
-    const selDiv = createCardDiv(playerDeck[selected], selected, true);
-    selDiv.classList.add("selected");
-    selectedDiv.appendChild(selDiv);
-  }
+  const p1 = document.getElementById("player1");
+  const p2 = document.getElementById("player2");
+  p1.innerHTML = deck1.map((c, i) =>
+    `<div class="card ${!c.alive ? 'dead' : ''}" onclick="playTurn(1,${i})">HP:${c.hp}<br>ATK:${c.atk}</div>`).join('');
+  p2.innerHTML = deck2.map((c, i) =>
+    `<div class="card ${!c.alive ? 'dead' : ''}" onclick="playTurn(2,${i})">HP:${c.hp}<br>ATK:${c.atk}</div>`).join('');
 }
 
-function createCardDiv(card, index, isPlayer) {
-  const div = document.createElement("div");
-  div.className = `card ${card.type}`;
-  if (!card.alive) div.classList.add("dead");
+function playTurn(player, index) {
+  if (player !== currentPlayer) return;
+  let attacker = (player === 1 ? deck1 : deck2)[index];
+  if (!attacker.alive) return;
 
-  div.innerHTML = `
-    <strong>${card.type.toUpperCase()}</strong><br>
-    HP: ${card.currentHp}/${card.maxHp}<br>
-    ATK: ${card.atk}
-  `;
+  let opponentDeck = player === 1 ? deck2 : deck1;
+  let target = opponentDeck.find(c => c.alive);
+  if (!target) return;
 
-  if (card.alive) {
-    if (isPlayer) {
-      div.onclick = () => {
-        selected = index;
-        render();
-      };
-    } else if (selected !== null) {
-      div.onclick = () => attack(selected, index);
-    }
+  target.hp -= attacker.atk;
+  log(`Player ${player} attacks for ${attacker.atk} damage!`);
+  if (target.hp <= 0) {
+    target.alive = false;
+    log(`A card was defeated!`);
   }
 
-  return div;
-}
-
-function attack(playerIndex, aiIndex) {
-  const pCard = playerDeck[playerIndex];
-  const aCard = aiDeck[aiIndex];
-  if (!pCard.alive || !aCard.alive) return;
-
-  aCard.currentHp -= pCard.atk;
-  log(`You attacked AI's ${aCard.type} for ${pCard.atk} damage!`);
-
-  if (aCard.currentHp <= 0) {
-    aCard.alive = false;
-    log("AI card defeated!");
-  }
-
-  selected = null;
-  render();
-
-  if (aiDeck.every(c => !c.alive)) {
-    winGame();
+  if (!opponentDeck.some(c => c.alive)) {
+    log(`Player ${player} wins!`);
+    disableAll();
     return;
   }
 
-  setTimeout(aiTurn, 1000);
-}
-
-function aiTurn() {
-  const aiCard = chooseAICard();
-  const target = playerDeck.find(c => c.alive);
-  if (!target || !aiCard) return;
-
-  target.currentHp -= aiCard.atk;
-  log(`AI attacks with ${aiCard.type} for ${aiCard.atk} damage!`);
-  if (target.currentHp <= 0) {
-    target.alive = false;
-    log("Your card was defeated!");
-  }
-
-  if (playerDeck.every(c => !c.alive)) {
-    log("AI wins!");
-    disable();
-  }
-
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
   render();
 }
 
-function chooseAICard() {
-  const alive = aiDeck.filter(c => c.alive);
-  if (aiLevel <= 3) return alive[Math.floor(Math.random() * alive.length)];
-  return alive.sort((a, b) => b.atk - a.atk)[0];
-}
-
-function winGame() {
-  log("You win!");
-  const available = aiDeck.filter(c => c.alive);
-  if (available.length) {
-    const reward = JSON.parse(JSON.stringify(available[Math.floor(Math.random() * available.length)]));
-    reward.currentHp = reward.maxHp;
-    playerDeck.push(reward);
-    log(`You gained a card: ${reward.type.toUpperCase()}!`);
-  }
-  disable();
-}
-
-function disable() {
-  document.querySelectorAll(".card").forEach(c => c.onclick = null);
-}
-
 function log(msg) {
-  const logDiv = document.getElementById("log");
-  logDiv.innerHTML += msg + "<br>";
-  logDiv.scrollTop = logDiv.scrollHeight;
+  const log = document.getElementById("log");
+  log.innerHTML += msg + "<br>";
+  log.scrollTop = log.scrollHeight;
 }
+
+function disableAll() {
+  document.querySelectorAll('.card').forEach(c => c.onclick = null);
+}
+
+render();
