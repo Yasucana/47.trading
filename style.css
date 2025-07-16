@@ -1,0 +1,42 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f4f4f4;
+}
+#game {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px;
+}
+.board {
+  flex: 1;
+}
+.card {
+  display: inline-block;
+  width: 100px;
+  height: 120px;
+  border: 2px solid black;
+  margin: 5px;
+  background: white;
+  padding: 5px;
+  cursor: pointer;
+}
+.card.dead {
+  background: #aaa;
+  pointer-events: none;
+}
+.card.selected {
+  border: 2px solid red;
+}
+.card.attack { background: #ffe0e0; }
+.card.defense { background: #e0e0ff; }
+.card.magic { background: #e0ffe0; }
+.card.trap { background: #fff0c0; }
+#log {
+  height: 100px;
+  overflow-y: auto;
+  margin-top: 20px;
+  background: #222;
+  color: #0f0;
+  padding: 10px;
+}
