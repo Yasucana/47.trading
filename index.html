@@ -6,37 +6,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Card Battle vs AI</h1>
-
-  <label for="difficulty">AI Difficulty:
-    <select id="difficulty">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-    </select>
-  </label>
-  <button onclick="startGame()">Start Game</button>
-
-  <div id="game" style="display:none">
-    <div class="board">
-      <h2>Your Cards</h2>
-      <div id="player"></div>
-    </div>
-    <div class="board">
-      <h2>AI Cards</h2>
-      <div id="ai"></div>
-    </div>
+  <h1>Trading Card Battle</h1>
+  <div id="game">
+    <div class="player" id="player1"></div>
+    <div class="vs">VS</div>
+    <div class="player" id="player2"></div>
   </div>
-
-  <h3>Selected Card:</h3>
-  <div id="selectedCard"></div>
   <div id="log"></div>
   <script src="game.js"></script>
 </body>
